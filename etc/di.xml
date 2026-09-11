@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <!-- Contributes a "cloudflare" block to StackNuts_StackGauge's fleet report. -->
+    <type name="StackNuts\StackGauge\Model\ReporterPool">
+        <arguments>
+            <argument name="reporters" xsi:type="array">
+                <item name="cloudflare" xsi:type="object">StackNuts\StackGaugeCloudflareCache\Model\StackGaugeReporter</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

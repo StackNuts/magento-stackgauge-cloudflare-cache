@@ -92,7 +92,10 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                 MetricDefinition::AGGREGATION_LATEST,
                 MetricDefinition::OPERATOR_GT,
                 50,
-                15
+                15,
+                null,
+                description: '{value} cache purge requests are waiting to be sent to Cloudflare, above {threshold}.',
+                impact: 'Customers may be served stale pages from Cloudflare.'
             ),
             // 30 minutes stale is a proxy for "the drain cron looks dead".
             new MetricDefinition(
@@ -101,7 +104,10 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                 MetricDefinition::AGGREGATION_LATEST,
                 MetricDefinition::OPERATOR_GT,
                 1800,
-                15
+                15,
+                null,
+                description: 'The oldest pending Cloudflare purge has waited {value} seconds, above {threshold}.',
+                impact: 'The purge queue may have stopped draining, leaving stale pages cached.'
             ),
         ];
     }

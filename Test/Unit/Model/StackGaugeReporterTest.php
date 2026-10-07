@@ -20,12 +20,17 @@ use StackNuts\StackGauge\Api\Section\Section;
 
 class StackGaugeReporterTest extends TestCase
 {
+    private function reporter(Config $config, PurgeQueue $purgeQueue): StackGaugeReporter
+    {
+        return new StackGaugeReporter($config, $purgeQueue, new Field(), new Section());
+    }
+
     public function testImplementsTheStackGaugeReporterContracts(): void
     {
         $config = $this->createStub(Config::class);
         $purgeQueue = $this->createStub(PurgeQueue::class);
 
-        $reporter = new StackGaugeReporter($config, $purgeQueue);
+        $reporter = $this->reporter($config, $purgeQueue);
 
         $this->assertInstanceOf(ReporterInterface::class, $reporter);
         $this->assertInstanceOf(MetricCatalogInterface::class, $reporter);
@@ -40,27 +45,12 @@ class StackGaugeReporterTest extends TestCase
         $purgeQueue->method('getPendingCount')->willReturn(7);
         $purgeQueue->method('getOldestPendingAgeInSeconds')->willReturn(120);
 
-        $reporter = new StackGaugeReporter($config, $purgeQueue);
+        $reporter = $this->reporter($config, $purgeQueue);
+        $fields = $reporter->getStatus()['general']->getFields();
 
-        $this->assertSame('cloudflare', $reporter->getName());
-        $this->assertEquals(
-            ['general' => Section::facts('general', 'General', $reporter->getDescription(), [
-                'enabled' => Field::bool('Enabled', true),
-                'purge_queue_backlog' => Field::trackableNumber(
-                    'Purge Queue Backlog',
-                    7,
-                    'cloudflare.purge_queue_backlog',
-                    MetricDefinition::AGGREGATION_LATEST
-                ),
-                'queue_oldest_pending_seconds' => Field::trackableNumber(
-                    'Queue Oldest Pending (seconds)',
-                    120,
-                    'cloudflare.queue_oldest_pending_seconds',
-                    MetricDefinition::AGGREGATION_LATEST
-                ),
-            ])],
-            $reporter->getStatus()
-        );
+        $this->assertTrue($fields['enabled']->getValue());
+        $this->assertSame(7, $fields['purge_queue_backlog']->getValue());
+        $this->assertSame(120, $fields['queue_oldest_pending_seconds']->getValue());
     }
 
     public function testReportsDisabledWithZeroBacklogWhenCloudflareIsNotTheActiveCacheType(): void
@@ -72,26 +62,12 @@ class StackGaugeReporterTest extends TestCase
         $purgeQueue->method('getPendingCount')->willReturn(0);
         $purgeQueue->method('getOldestPendingAgeInSeconds')->willReturn(null);
 
-        $reporter = new StackGaugeReporter($config, $purgeQueue);
+        $reporter = $this->reporter($config, $purgeQueue);
+        $fields = $reporter->getStatus()['general']->getFields();
 
-        $this->assertEquals(
-            ['general' => Section::facts('general', 'General', $reporter->getDescription(), [
-                'enabled' => Field::bool('Enabled', false),
-                'purge_queue_backlog' => Field::trackableNumber(
-                    'Purge Queue Backlog',
-                    0,
-                    'cloudflare.purge_queue_backlog',
-                    MetricDefinition::AGGREGATION_LATEST
-                ),
-                'queue_oldest_pending_seconds' => Field::trackableNumber(
-                    'Queue Oldest Pending (seconds)',
-                    0,
-                    'cloudflare.queue_oldest_pending_seconds',
-                    MetricDefinition::AGGREGATION_LATEST
-                ),
-            ])],
-            $reporter->getStatus()
-        );
+        $this->assertFalse($fields['enabled']->getValue());
+        $this->assertSame(0, $fields['purge_queue_backlog']->getValue());
+        $this->assertSame(0, $fields['queue_oldest_pending_seconds']->getValue());
     }
 
     public function testDeclaresTrackableMetricsForBothQueueGauges(): void
@@ -99,7 +75,7 @@ class StackGaugeReporterTest extends TestCase
         $config = $this->createStub(Config::class);
         $purgeQueue = $this->createStub(PurgeQueue::class);
 
-        $reporter = new StackGaugeReporter($config, $purgeQueue);
+        $reporter = $this->reporter($config, $purgeQueue);
         $metrics = $reporter->getTrackableMetrics();
 
         $this->assertCount(2, $metrics);

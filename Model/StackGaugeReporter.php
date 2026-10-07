@@ -33,9 +33,17 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
     private const METRIC_BACKLOG = 'cloudflare.purge_queue_backlog';
     private const METRIC_OLDEST_PENDING_SECONDS = 'cloudflare.queue_oldest_pending_seconds';
 
+    /**
+     * @param Config $config
+     * @param PurgeQueue $purgeQueue
+     * @param Field $field
+     * @param Section $section
+     */
     public function __construct(
         private readonly Config $config,
-        private readonly PurgeQueue $purgeQueue
+        private readonly PurgeQueue $purgeQueue,
+        private readonly Field $field,
+        private readonly Section $section
     ) {
     }
 
@@ -62,15 +70,15 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
     public function getStatus(): array
     {
         return [
-            'general' => Section::facts('general', 'General', $this->getDescription(), [
-                'enabled' => Field::bool('Enabled', $this->config->isActive()),
-                'purge_queue_backlog' => Field::trackableNumber(
+            'general' => $this->section->facts('general', 'General', $this->getDescription(), [
+                'enabled' => $this->field->bool('Enabled', $this->config->isActive()),
+                'purge_queue_backlog' => $this->field->trackableNumber(
                     'Purge Queue Backlog',
                     $this->purgeQueue->getPendingCount(),
                     self::METRIC_BACKLOG,
                     MetricDefinition::AGGREGATION_LATEST
                 ),
-                'queue_oldest_pending_seconds' => Field::trackableNumber(
+                'queue_oldest_pending_seconds' => $this->field->trackableNumber(
                     'Queue Oldest Pending (seconds)',
                     // An empty queue has nothing to be stale, so 0 (not null) is "nothing wrong".
                     $this->purgeQueue->getOldestPendingAgeInSeconds() ?? 0,

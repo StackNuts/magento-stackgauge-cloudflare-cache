@@ -11,6 +11,7 @@ namespace StackNuts\StackGaugeCloudflareCache\Model;
 use StackNuts\CloudflareCache\Model\Config;
 use StackNuts\CloudflareCache\Model\ResourceModel\PurgeQueue;
 use StackNuts\StackGauge\Api\DeclaresSectionInterface;
+use StackNuts\StackGauge\Api\DeclaresSlotInterface;
 use StackNuts\StackGauge\Api\Field\Field;
 use StackNuts\StackGauge\Api\MetricCatalogInterface;
 use StackNuts\StackGauge\Api\MetricDefinition;
@@ -24,7 +25,7 @@ use StackNuts\StackGauge\Model\Reporter\Concern\PlatformSectionTrait;
  * so they get an editable dashboard alert rule for free, with AGGREGATION_LATEST since each is
  * a point-in-time gauge, not something to sum or average.
  */
-class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, DeclaresSectionInterface
+class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, DeclaresSectionInterface, DeclaresSlotInterface
 {
     use PlatformSectionTrait;
 
@@ -118,5 +119,13 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                 impact: 'The purge queue may have stopped draining, leaving stale pages cached.'
             ),
         ];
+    }
+
+    /**
+     * Run 1 within this reporter's cadence tier.
+     */
+    public function getSlot(): int
+    {
+        return 1;
     }
 }

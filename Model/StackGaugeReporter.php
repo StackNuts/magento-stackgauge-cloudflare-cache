@@ -17,6 +17,7 @@ use StackNuts\StackGauge\Api\MetricCatalogInterface;
 use StackNuts\StackGauge\Api\MetricDefinition;
 use StackNuts\StackGauge\Api\ReporterInterface;
 use StackNuts\StackGauge\Api\Section\Section;
+use StackNuts\StackGauge\Api\Unit;
 use StackNuts\StackGauge\Model\Reporter\Concern\PlatformSectionTrait;
 
 /**
@@ -80,11 +81,12 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                     MetricDefinition::AGGREGATION_LATEST
                 ),
                 'queue_oldest_pending_seconds' => $this->field->trackableNumber(
-                    'Queue Oldest Pending (seconds)',
+                    'Queue Oldest Pending',
                     // An empty queue has nothing to be stale, so 0 (not null) is "nothing wrong".
                     $this->purgeQueue->getOldestPendingAgeInSeconds() ?? 0,
                     self::METRIC_OLDEST_PENDING_SECONDS,
-                    MetricDefinition::AGGREGATION_LATEST
+                    MetricDefinition::AGGREGATION_LATEST,
+                    unit: Unit::SECONDS
                 ),
             ]),
         ];
@@ -104,19 +106,22 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                 15,
                 null,
                 description: '{value} cache purge requests are waiting to be sent to Cloudflare, above {threshold}.',
-                impact: 'Customers may be served stale pages from Cloudflare.'
+                impact: 'Customers may be served stale pages from Cloudflare.',
+                criticalThreshold: 500
             ),
             // 30 minutes stale is a proxy for "the drain cron looks dead".
             new MetricDefinition(
                 self::METRIC_OLDEST_PENDING_SECONDS,
-                'Cloudflare: Oldest Pending Purge (seconds)',
+                'Cloudflare: Oldest Pending Purge',
                 MetricDefinition::AGGREGATION_LATEST,
                 MetricDefinition::OPERATOR_GT,
                 1800,
                 15,
                 null,
-                description: 'The oldest pending Cloudflare purge has waited {value} seconds, above {threshold}.',
-                impact: 'The purge queue may have stopped draining, leaving stale pages cached.'
+                description: 'The oldest pending Cloudflare purge has waited {value}, above {threshold}.',
+                impact: 'The purge queue may have stopped draining, leaving stale pages cached.',
+                criticalThreshold: 7200,
+                unit: Unit::SECONDS
             ),
         ];
     }

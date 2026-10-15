@@ -85,8 +85,7 @@ class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, D
                     // An empty queue has nothing to be stale, so 0 (not null) is "nothing wrong".
                     $this->purgeQueue->getOldestPendingAgeInSeconds() ?? 0,
                     self::METRIC_OLDEST_PENDING_SECONDS,
-                    MetricDefinition::AGGREGATION_LATEST,
-                    unit: Unit::SECONDS
+                    MetricDefinition::AGGREGATION_LATEST
                 ),
             ]),
         ];

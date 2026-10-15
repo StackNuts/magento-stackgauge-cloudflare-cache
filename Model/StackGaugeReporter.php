@@ -18,7 +18,7 @@ use StackNuts\StackGauge\Api\MetricDefinition;
 use StackNuts\StackGauge\Api\ReporterInterface;
 use StackNuts\StackGauge\Api\Section\Section;
 use StackNuts\StackGauge\Api\Unit;
-use StackNuts\StackGauge\Model\Reporter\Concern\PlatformSectionTrait;
+use StackNuts\StackGauge\Model\Reporter\Concern\PerformanceSectionTrait;
 
 /**
  * Contributes StackNuts_CloudflareCache's status to the StackNuts_StackGauge fleet report via
@@ -28,7 +28,7 @@ use StackNuts\StackGauge\Model\Reporter\Concern\PlatformSectionTrait;
  */
 class StackGaugeReporter implements ReporterInterface, MetricCatalogInterface, DeclaresSectionInterface, DeclaresSlotInterface
 {
-    use PlatformSectionTrait;
+    use PerformanceSectionTrait;
 
     private const SCHEMA_VERSION = '1.0';
 
